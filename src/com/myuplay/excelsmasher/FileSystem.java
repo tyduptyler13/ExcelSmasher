@@ -1,20 +1,24 @@
+
+package com.myuplay.excelsmasher;
+
 import java.io.File;
+import java.io.IOException;
 import java.util.LinkedList;
 
 import javax.swing.filechooser.FileFilter;
-
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 
 public class FileSystem{
 
 	private LinkedList<File> files;
 	private FileFilter fileFilter;
 	private int fileCount = 0;
+	private Writter w;
 
 	private FileSystem(){
 
 		fileFilter = getFilter();
 		files = new LinkedList<File>();
+		w = new Writter();
 
 	}
 
@@ -87,22 +91,39 @@ public class FileSystem{
 		};
 
 	}
-	
-	public void read(HSSFWorkbook wb){
-		
+
+	public void read(){
+
+		int count = 1;
 		for (File file : files){
-			
-			Reader r = new Reader(file);
-			r.parse(wb);
-			
+
+			try {
+
+				Console.log("Reading " + count + "/" + fileCount + "  (" + count/fileCount * 100 + "%)");
+				count++;
+
+				Reader r = new Reader(file);
+
+				r.parse(w);
+				r.close();
+			} catch (Exception e) {
+				Console.warn("There was something wrong with this format in file: " + file.getPath());
+				Console.log(file.getName() + " - skipped...");
+			}
+
+
 		}
-		
+
 	}
 
 	public int getFileCount(){
 
 		return fileCount;
 
+	}
+
+	public void write(File f) throws IOException{
+		w.write(f);
 	}
 
 }

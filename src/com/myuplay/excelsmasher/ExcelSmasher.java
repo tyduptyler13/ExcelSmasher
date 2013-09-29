@@ -1,3 +1,6 @@
+
+package com.myuplay.excelsmasher;
+
 import javax.swing.SwingUtilities;
 
 

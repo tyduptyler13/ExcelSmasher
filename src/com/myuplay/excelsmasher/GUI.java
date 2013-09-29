@@ -1,8 +1,13 @@
+
+package com.myuplay.excelsmasher;
+
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.IOException;
 
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
@@ -15,6 +20,7 @@ import javax.swing.SwingConstants;
 import javax.swing.SwingWorker;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
+import javax.swing.filechooser.FileFilter;
 import javax.swing.text.Document;
 
 
@@ -28,6 +34,7 @@ public class GUI extends JPanel implements ActionListener{
 	private JButton openFiles, openDirectory, save;
 	private JTextArea console;
 	private static JFrame frame;
+	private FileSystem done;//Last completed FileSystem
 
 	private Console c;
 
@@ -65,12 +72,13 @@ public class GUI extends JPanel implements ActionListener{
 		console.setWrapStyleWord(true);
 		console.setLineWrap(true);
 		JScrollPane cscroll = new JScrollPane(console);
-		//cscroll.setPreferredSize(new Dimension(450,200));
+		cscroll.setPreferredSize(new Dimension(450,200));
 		cscroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
 
 
 		buttonbar.add(openFiles);
 		buttonbar.add(openDirectory);
+		buttonbar.add(save);
 
 		root.add(cscroll, BorderLayout.SOUTH);
 
@@ -93,8 +101,7 @@ public class GUI extends JPanel implements ActionListener{
 	public void actionPerformed(ActionEvent e) {
 		if (e.getActionCommand().equals("openFiles")){
 
-			final JFileChooser in = new JFileChooser("Open");
-			in.setCurrentDirectory(new File("."));
+			final JFileChooser in = new JFileChooser();
 			in.addChoosableFileFilter(FileSystem.getFilter());
 			in.setFileFilter(in.getChoosableFileFilters()[1]);
 			in.setAcceptAllFileFilterUsed(false);
@@ -109,8 +116,7 @@ public class GUI extends JPanel implements ActionListener{
 
 		} else if (e.getActionCommand().equals("openDirectory")) {
 
-			final JFileChooser in = new JFileChooser("Open");
-			in.setCurrentDirectory(new File("."));
+			final JFileChooser in = new JFileChooser();
 			in.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 			if (in.showOpenDialog(this) == JFileChooser.APPROVE_OPTION){
 
@@ -120,15 +126,39 @@ public class GUI extends JPanel implements ActionListener{
 				Console.log("No folder selected.");
 			}
 
-		} else if (e.getActionCommand().equals("getSTS")){
+		} else if (e.getActionCommand().equals("save")){
+			JFileChooser out = new JFileChooser();
+			out.setFileFilter(new FileFilter(){
 
+				@Override
+				public boolean accept(File f) {
+					return f.getName().matches(".+\\.xlsx");
+				}
+
+				@Override
+				public String getDescription() {
+					return "Excel OOXML Format (xlsx)";
+				}
+
+			});
+
+			out.setFileFilter(out.getChoosableFileFilters()[1]);
+			out.setAcceptAllFileFilterUsed(false);
+			if (out.showSaveDialog(this) == JFileChooser.APPROVE_OPTION){
+				save(out.getSelectedFile());
+			} else {
+				Console.log("Save canceled");
+			}
 		}
 
 		frame.repaint();
 
 	}
 
-	private void read(final JFileChooser in){
+	private synchronized void read(final JFileChooser in){
+
+		save.setEnabled(false);
+
 		SwingWorker<Void, Void> w = new SwingWorker<Void, Void>(){
 
 			FileSystem fs;
@@ -136,12 +166,15 @@ public class GUI extends JPanel implements ActionListener{
 			@Override
 			protected Void doInBackground() throws Exception {
 				fs = new FileSystem(in.getSelectedFiles());
+				Console.log("Parsing files");
+				fs.read();
 				return null;
 			}
 
 			protected void done(){
 				Console.log(fs.getFileCount() + " files parsed.");
-				//TODO DO something with data?
+				done = fs;
+				save.setEnabled(true);
 			}
 
 		};
@@ -149,8 +182,46 @@ public class GUI extends JPanel implements ActionListener{
 		w.execute();
 	}
 
+	private synchronized void save(final File out){
+
+		Console.log("Saving file. Save button disabled until complete.");
+
+		save.setEnabled(false);
+
+		SwingWorker<Void, Void> w = new SwingWorker<Void, Void>(){
+
+			protected Void doInBackground() throws Exception {
+
+				try{
+					String file = out.getName();
+					if (file.endsWith(".xlsx")){
+						Console.log("Saving to " + file);
+						done.write(out);
+					} else {
+						Console.log("Saving to " + file + ".xlsx");
+						done.write(new File(file + ".xlsx"));
+					}
+				} catch (IOException e){
+					Console.error("An error occured trying to save the file.");
+				}
+
+				return null;
+
+			}
+
+			protected void done(){
+				Console.log("Save completed");
+				save.setEnabled(true);
+			}
+
+		};
+
+		w.execute();
+
+	}
+
 	public static void createAndShowGUI() {
-		frame = new JFrame("SuperParser");
+		frame = new JFrame("Excel Smasher");
 		try {
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		} catch (ClassNotFoundException e) {

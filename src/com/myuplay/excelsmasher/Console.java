@@ -1,6 +1,8 @@
+
+package com.myuplay.excelsmasher;
+
 import java.util.LinkedList;
 import java.util.List;
-
 
 /**
  * Primary way to print to console. This takes care of labeling and formating.
@@ -17,7 +19,7 @@ public abstract class Console{
 	public static void warn(String ... string){
 
 		for(String s : string){
-			printAll("[SuperParser][warn] " + s);
+			printAll("[ExcelSmasher][warn] " + s);
 		}
 
 	}
@@ -25,7 +27,7 @@ public abstract class Console{
 	public static void log(String ... string){
 
 		for(String s : string){
-			printAll("[SuperParser][log] " + s);
+			printAll("[ExcelSmasher][log] " + s);
 		}
 
 	}
@@ -33,7 +35,7 @@ public abstract class Console{
 	public static void error(String ... string){
 
 		for(String s : string){
-			printAll("[SuperParser][ERROR] " + s);
+			printAll("[ExcelSmasher][ERROR] " + s);
 		}
 
 	}
