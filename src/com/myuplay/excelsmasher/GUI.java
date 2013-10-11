@@ -165,7 +165,11 @@ public class GUI extends JPanel implements ActionListener{
 
 			@Override
 			protected Void doInBackground() throws Exception {
-				fs = new FileSystem(in.getSelectedFiles());
+				if (in.isDirectorySelectionEnabled()){
+					fs = new FileSystem(in.getSelectedFile());
+				} else {
+					fs = new FileSystem(in.getSelectedFiles());
+				}
 				Console.log("Parsing files");
 				fs.read();
 				return null;

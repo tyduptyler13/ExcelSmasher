@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.myuplay</groupId>
 	<artifactId>ExcelSmasher</artifactId>
-	<version>1.0.3-SNAPSHOT</version>
+	<version>1.0.4-SNAPSHOT</version>
 	<name>Excel Smasher</name>
 	<description>This is a program designed to extract data from groups of files formated for excel and "smash" them into one file.</description>
 	<properties>
@@ -37,7 +37,6 @@
 									<mainClass>com.myuplay.excelsmasher.ExcelSmasher</mainClass>
 								</transformer>
 							</transformers>
-							
 						</configuration>
 					</execution>
 				</executions>
